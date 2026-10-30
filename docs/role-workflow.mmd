@@ -1,0 +1,75 @@
+---
+title: OnboardHQ — Role-Based Workflow
+---
+sequenceDiagram
+  accTitle: Four simulated role swimlanes
+  accDescr: HR initiates onboarding, while document collection, IT provisioning and team tasks proceed in parallel. Documents and task completion remain separate measures.
+  autonumber
+  participant hr as HR
+  participant emp as Employee
+  participant it as IT Admin
+  participant mgr as Manager
+  Note over hr,mgr: Demo role switcher in one browser, no authentication or messages sent between real users
+  rect rgb(238, 242, 255)
+    hr->>hr: Create employee and select onboarding type
+    hr->>hr: Create seven-item document checklist
+    hr->>hr: Initiate journey, generate four role-owned tasks
+    Note over hr,mgr: Documents exist before initiation, branches can progress independently
+  end
+  par Document collection and review
+    hr-->>emp: Required / optional checklist shown in profile
+    loop Missing or rejected items
+      emp->>emp: Pick PDF/JPG/PNG or sample metadata
+      alt Invalid name, MIME, empty file or size above 10 MB
+        emp->>emp: Show validation error, no submission saved
+      else Valid metadata only
+        emp-->>hr: Save versioned metadata as Pending Review
+        alt Verify
+          hr->>hr: Mark Verified, remarks optional
+        else Reject
+          hr-->>emp: Mark Rejected with required remarks
+          emp->>emp: Resubmit replacement metadata
+        else Request resubmission
+          hr-->>emp: Mark Missing with required remarks
+          emp->>emp: Submit next version
+        else Waive
+          hr->>hr: Mark Waived with required remarks
+        end
+      end
+    end
+    hr->>hr: Review separate mandatory document readiness
+  and Employee checklist
+    emp->>emp: Update own Employee-owned task status
+    emp->>emp: Complete or reopen assigned tasks
+  and Equipment and application access
+    it->>it: Create inventory, assign available equipment
+    alt Equipment already assigned to another employee
+      it->>it: Reject reassignment, unassign first
+    else Equipment available
+      it-->>emp: Display assigned laptop / accessory
+    end
+    emp-->>it: Create Pending access request for self
+    Note over hr,mgr: All demo roles may create Pending requests, only IT Admin decides
+    alt Approve
+      it-->>emp: Approved access status
+      it->>it: Revoke if needed, reopen to Pending
+    else Reject
+      it-->>emp: Rejected access status
+      it->>it: Reopen to Pending if needed
+    end
+    it->>it: Complete or reopen IT-owned tasks
+  and HR and Manager checklist
+    hr->>hr: Add / edit tasks, set owner, due date and priority
+    mgr->>mgr: Manage Manager-owned tasks and team introduction
+    alt Task blocked
+      mgr->>mgr: Save required reason, resolve and update status
+    else Work finished
+      mgr->>mgr: Complete task, reopen if needed
+    end
+    hr->>hr: Complete HR tasks, HR can manage any task
+  end
+  rect rgb(236, 253, 245)
+    hr->>hr: Inspect Dashboard / Reports and readiness measures
+    Note over hr,mgr: Journey becomes Completed when all its tasks are Completed
+    Note over hr,mgr: Documents and provisioning do not automatically gate that status
+  end

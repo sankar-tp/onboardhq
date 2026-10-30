@@ -1,0 +1,53 @@
+---
+title: OnboardHQ — Technical Architecture
+---
+flowchart TB
+  accTitle: OnboardHQ technical architecture
+  accDescr: Browser-only React application with validated shared state, derived views and localStorage persistence. No backend or document-content storage.
+  subgraph runtime ["01 / React and Vite browser application"]
+    entry["main.jsx / React StrictMode / App.jsx router"]
+    shell["AppLayout / navigation / demo identity / popovers"]
+    pages["Dashboard / Employees / Onboarding / Assets / Reports"]
+    ui["Shared UI / RecordForm / EmployeeProfile / DocumentsPanel / MockFilePicker"]
+    entry --> shell --> pages --> ui
+  end
+  subgraph stateLayer ["02 / Shared application state"]
+    context["WorkspaceProvider / useWorkspace / latest-state reference"]
+    scope["Employee identity scope / role task queues"]
+    commit["commit(action) / save errors and feedback"]
+    context --> scope
+    context --> commit
+  end
+  subgraph domain ["03 / Workflow and derived queries"]
+    model["model.js / transition / validateData / activity"]
+    workflow["workflow.js / type-specific checklistTasks"]
+    documents["documents.js / templates / review transitions"]
+    metadata["fileMetadata.js / filename, MIME and size checks"]
+    queries["employeeRows / documentSummary / reporting.js"]
+    model --> workflow
+    model --> documents --> metadata
+  end
+  subgraph device ["04 / Persistence and browser output"]
+    storage["storage.js / loadWorkspace / saveWorkspace"]
+    local[("localStorage / onboardhq.workspace.v1")]
+    seed["sampleData.js / seed / first launch only"]
+    csv["reportCsv / CSV Blob / browser download"]
+    storage <-->|"validated JSON / stale-write comparison"| local
+    seed -->|"key absent"| storage
+  end
+  pages -->|"read shared view"| context
+  ui -->|"form actions"| commit
+  scope -->|"derive display metrics"| queries
+  commit <-->|"action / validated next state"| model
+  context <-->|"initial load / persist before publishing"| storage
+  queries -->|"filtered report rows"| csv
+  boundary["Browser only / roles simulate permissions / no authentication, API, backend or file-content storage"]
+  local -.-> boundary
+  classDef primary fill:#eef2ff,stroke:#6366f1,color:#1e1b4b;
+  classDef neutral fill:#f8fafc,stroke:#94a3b8,color:#0f172a;
+  classDef success fill:#ecfdf5,stroke:#059669,color:#064e3b;
+  classDef note fill:#fffbeb,stroke:#d97706,color:#78350f;
+  class entry,shell,pages,context,commit primary;
+  class ui,scope,model,workflow,documents,metadata,queries neutral;
+  class storage,local,seed,csv success;
+  class boundary note;

@@ -1,0 +1,74 @@
+---
+title: OnboardHQ — Employee Onboarding Journey
+---
+flowchart TB
+  accTitle: Employee onboarding journey and rework paths
+  accDescr: Independent document, provisioning and task tracks after employee creation. Task completion drives journey status; document readiness is a separate derived measure.
+  create(["HR creates employee / selects type"])
+  checklist["Seven document items / required rules by type"]
+  initiate["HR initiates journey / four role-owned tasks"]
+  parallel["Independent work tracks / no enforced stage ordering"]
+  create --> checklist --> initiate --> parallel
+  subgraph collection ["Documents / readiness"]
+    missing["Missing mandatory item"]
+    submit["Employee or HR selects file metadata"]
+    valid{"Valid PDF/JPG/PNG metadata and 0 < size ≤ 10 MB?"}
+    error["Validation feedback / nothing saved"]
+    pending["Pending Review / version history retained"]
+    review{"HR review decision"}
+    reject["Rejected / remarks required"]
+    resubmit["Request resubmission / Missing / remarks required"]
+    resolved["Verified or Waived / waiver remarks required"]
+    ready{"All mandatory items resolved?"}
+    docReady["Document-ready / optional items excluded"]
+    missing --> submit --> valid
+    valid -->|"No"| error --> submit
+    valid -->|"Yes"| pending --> review
+    review -->|"Reject"| reject --> submit
+    review -->|"Request replacement"| resubmit --> submit
+    review -->|"Verify or waive"| resolved --> ready
+    missing -->|"HR may waive with remarks"| resolved
+    ready -->|"No / next outstanding item"| missing
+    ready -->|"Yes"| docReady
+  end
+  subgraph provisioning ["Assets and access / simulated"]
+    resources["IT Admin allocates available inventory"]
+    requests["Create Pending software access request"]
+    approve{"IT Admin decision"}
+    approved["Approved / may revoke and reopen"]
+    rejected["Rejected / may reopen to Pending"]
+    resources --> requests --> approve
+    approve -->|"Approve"| approved
+    approve -->|"Reject"| rejected -->|"Reopen"| requests
+  end
+  subgraph tasksTrack ["Tasks / journey status"]
+    tasks["HR / Employee / IT / Manager work on assigned tasks"]
+    blocked["Blocked or overdue / attention required"]
+    allDone{"All journey tasks Completed?"}
+    active["Not started / In progress / Needs attention"]
+    completed(["Journey status: Completed / task progress 100%"])
+    tasks --> allDone
+    tasks -->|"Block with reason or miss due date"| blocked
+    blocked -->|"Resolve / update task"| tasks
+    allDone -->|"No"| active --> tasks
+    allDone -->|"Yes"| completed
+    completed -->|"Reopen a task"| tasks
+  end
+  parallel --> missing
+  parallel --> resources
+  parallel --> tasks
+  summary["Dashboard / profile / Reports display separate measures"]
+  docReady -.-> summary
+  approved -.-> summary
+  rejected -.-> summary
+  completed -.-> summary
+  caution["No combined readiness gate: documents and resources do not block task-based completion"]
+  summary -.-> caution
+  classDef primary fill:#eef2ff,stroke:#6366f1,color:#1e1b4b;
+  classDef neutral fill:#f8fafc,stroke:#94a3b8,color:#0f172a;
+  classDef success fill:#ecfdf5,stroke:#059669,color:#064e3b;
+  classDef warning fill:#fffbeb,stroke:#d97706,color:#78350f;
+  class create,checklist,initiate,parallel,submit,pending,tasks,resources,requests,summary primary;
+  class valid,review,ready,approve,allDone neutral;
+  class resolved,docReady,approved,completed success;
+  class missing,error,reject,resubmit,rejected,blocked,active,caution warning;
